@@ -99,6 +99,7 @@ describe('log limits', function () {
     var snitch = new Snitch({
       ttl: 200
     });
+    snitch.clear();
     snitch.log('Test message 1');
     snitch.log('Test message 2');
     expect(snitch._log.length).to.equal(2);
@@ -107,5 +108,18 @@ describe('log limits', function () {
       expect(snitch._log.length).to.equal(1);
       done();
     }, 400);
+  });
+
+  it('remove logs over capacity', function () {
+    var snitch = new Snitch({
+      capacity: 3
+    });
+    snitch.clear();
+    snitch.log('Test message 1');
+    snitch.log('Test message 2');
+    snitch.log('Test message 3');
+    snitch.log('Test message 4');
+    expect(snitch._log.length).to.equal(3);
+    expect(snitch._log[0][1]).to.equal('Test message 2');
   });
 });

@@ -15,8 +15,12 @@ var Snitch = function (options) {
   this.KEY = options.key || 'snitch';
   this.url = options.url;
   this.ttl = options.ttl;
+  this.capacity = options.capacity;
   if (!this.ttl) {
     this.checkTTL = function () {};
+  }
+  if (!this.capacity) {
+    this.checkCapacity = function () {};
   }
   this._log = [];
   this.storage = Snitch.storage;
@@ -75,6 +79,7 @@ Snitch.prototype.log = function () {
   ]);
 
   this.checkTTL();
+  this.checkCapacity();
   this.save();
 };
 
@@ -120,4 +125,8 @@ Snitch.prototype.checkTTL = function () {
       return val[0] >= deadline;
     });
   }
+};
+
+Snitch.prototype.checkCapacity = function () {
+  this._log = this._log.slice(-this.capacity);
 };
