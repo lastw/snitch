@@ -81,4 +81,15 @@ describe('storage', function () {
     snitch2.load();
     expect(snitch2._log.length).to.equal(0);
   });
+
+  it('hard clearing clears storage', function () {
+    snitch.clear();
+    snitch.log('Test message');
+    snitch.clear();
+    snitch.load();
+    expect(snitch._log.length).to.equal(1);
+    snitch.clear(true);
+    snitch.load();
+    expect(snitch._log.length).to.equal(0);
+  });
 });

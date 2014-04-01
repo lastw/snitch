@@ -64,8 +64,11 @@ Snitch.prototype.log = function () {
   this.save();
 };
 
-Snitch.prototype.clear = function () {
+Snitch.prototype.clear = function (hard) {
   this._log = [];
+  if (hard) {
+    this.save();
+  }
 };
 
 Snitch.prototype.clearAll = function () {
