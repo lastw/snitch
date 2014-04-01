@@ -1,0 +1,8 @@
+{
+  "name": "snitch",
+  "description": "Client-side log-sending tool",
+  "author": "Vladislav Sapozhnikov <me@lastw.net>",
+  "version": "0.0.1",
+  "main": "./snitch.js",
+  "license": "MIT"
+}

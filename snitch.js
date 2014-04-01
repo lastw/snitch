@@ -1,0 +1,86 @@
+'use strict';
+
+var Snitch = function (options) {
+  if (typeof options === 'string') {
+    options = {
+      url: options
+    };
+  }
+  else if (options === undefined) {
+    options = {
+      url: location.host
+    };
+  }
+
+  this.KEY = options.key || 'snitch';
+
+  this.url = options.url;
+  this._log = [];
+  this.storage = Snitch.storage;
+  this.load();
+};
+
+Snitch.storage = {
+  get: function (key) {
+    return JSON.parse(localStorage.getItem(key));
+  },
+
+  set: function (key, value) {
+    return localStorage.setItem(key, JSON.stringify(value));
+  },
+
+  clear: function (key) {
+    return localStorage.removeItem(key);
+  }
+};
+
+Snitch.message = function () {
+  var message = '';
+  for (var i in arguments) {
+    var part = arguments[i];
+    if (typeof part !== 'string') {
+      part = JSON.stringify(arguments[i]);
+    }
+    message += part + ' ';
+  }
+  // cut last space
+  return message.slice(0, -1);
+};
+
+Snitch.prototype.serialize = function () {
+  return JSON.stringify(this._log);
+};
+
+Snitch.prototype.log = function () {
+  this.last = {
+    message: Snitch.message.apply(this, arguments),
+    date: Date.now()
+  };
+
+  this._log.push([
+    this.last.date,
+    this.last.message
+  ]);
+  this.save();
+};
+
+Snitch.prototype.clear = function () {
+  this._log = [];
+};
+
+Snitch.prototype.clearAll = function () {
+  Snitch.storage.clear(this.KEY);
+  this.clear();
+};
+
+Snitch.prototype.save = function () {
+  var log = this.storage.get(this.KEY);
+  log = log || {};
+  log[this.url] = this._log;
+  this.storage.set(this.KEY, log);
+};
+
+Snitch.prototype.load = function () {
+  var stored = this.storage.get(this.KEY) || {};
+  this._log = stored[this.url] || [];
+};
