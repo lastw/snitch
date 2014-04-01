@@ -1,20 +1,28 @@
 'use strict';
 
+// Date.now() polifyll for IE8-
+if (!Date.now) {
+  Date.now = function now() {
+    return new Date().getTime();
+  };
+}
+
 var Snitch = function (options) {
+  options = options || {};
+
   if (typeof options === 'string') {
     options = {
       url: options
     };
   }
-  else if (options === undefined) {
-    options = {
-      url: location.href
-    };
+  else {
+    options.url = options.url || location.href;
   }
 
   this.KEY = options.key || 'snitch';
   this.url = options.url;
   this.ttl = options.ttl;
+  this.interval = options.interval;
   this.capacity = options.capacity;
   if (!this.ttl) {
     this.checkTTL = function () {};
@@ -25,6 +33,17 @@ var Snitch = function (options) {
   this._log = [];
   this.storage = Snitch.storage;
   this.load();
+
+  if (this.interval) {
+    var firstTimestamp = this._log[0] ? this._log[0][0] : Date.now(),
+        timeout = firstTimestamp - Date.now() + this.interval,
+        _this = this;
+    setTimeout(function () {
+      _this.send();
+      setInterval(_this.send.bind(_this), _this.interval);
+    }, timeout);
+  }
+
 };
 
 Snitch.storage = {
@@ -108,14 +127,17 @@ Snitch.prototype.load = function () {
 };
 
 Snitch.prototype.send = function (options) {
-  options = Snitch.extend({
-    url: this.url,
-    data: {
-      userAgent: navigator.userAgent,
-      log: this.serialize()
-    }
-  }, options);
-  Snitch.send(options);
+  if (this._log.length) {
+    options = Snitch.extend({
+      url: this.url,
+      data: {
+        userAgent: navigator.userAgent,
+        log: this.serialize()
+      },
+      complete: this.clear.bind(this, true) // log will be cleared even if ajax error
+    }, options);
+    Snitch.send(options);
+  }
 };
 
 Snitch.prototype.checkTTL = function () {

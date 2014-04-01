@@ -19,13 +19,13 @@ describe('common', function () {
   });
 
   it('pass url to constuctor as string variable', function () {
-    var url = 'localhost:3333',
+    var url = '/path/to/log/service',
         snitch = new Snitch(url);
     expect(snitch.url).to.equal(url);
   });
 
   it('pass url to constuctor as options.url', function () {
-    var url = 'localhost:3333',
+    var url = '/path/to/log/service',
         snitch = new Snitch({url: url});
     expect(snitch.url).to.equal(url);
   });
@@ -71,9 +71,18 @@ describe('storage', function () {
     expect(snitch2.serialize()).to.equal(snitch.serialize());
   });
 
+  it('log is the same after save/load (with options)', function () {
+    snitch.clear();
+    snitch.log('First test log message');
+    snitch.log('Second test log message');
+
+    var snitch2 = new Snitch({customOption: 1});
+    expect(snitch2.serialize()).to.equal(snitch.serialize());
+  });
+
   it('storages with different urls not affect each other', function () {
     snitch.clear();
-    var snitch2 = new Snitch('localhost:1234');
+    var snitch2 = new Snitch('/path/to/log/service');
     snitch2.clear();
     snitch2.save();
 
@@ -121,5 +130,47 @@ describe('log limits', function () {
     snitch.log('Test message 4');
     expect(snitch._log.length).to.equal(3);
     expect(snitch._log[0][1]).to.equal('Test message 2');
+  });
+});
+
+describe('log timer', function () {
+  it('log sending every interval', function (done) {
+    var snitch = new Snitch({
+      interval: 300
+    });
+    snitch.clear();
+    snitch.log('Test interval');
+    expect(snitch._log.length).to.equal(1);
+    expect(snitch._log[0][1]).to.equal('Test interval');
+    setTimeout(function () {
+      expect(snitch._log.length).to.equal(0);
+      snitch.log('Test interval 2');
+      expect(snitch._log.length).to.equal(1);
+      expect(snitch._log[0][1]).to.equal('Test interval 2');
+      setTimeout(function () {
+        expect(snitch._log.length).to.equal(0);
+        done();
+      }, 400);
+    }, 400);
+  });
+
+  it('log sending timer offset', function (done) {
+    var snitch = new Snitch();
+    snitch.clear();
+    snitch.log('Test interval offset');
+    setTimeout(function () { // TODO: use async
+      var snitch2 = new Snitch({
+        interval: 800
+      });
+      expect(snitch2._log.length).to.equal(1);
+      expect(snitch2._log[0][1]).to.equal('Test interval offset');
+      setTimeout(function () {
+        expect(snitch2._log.length).to.equal(1);
+        setTimeout(function () {
+          expect(snitch2._log.length).to.equal(0);
+          done();
+        }, 300);
+      }, 200);
+    }, 400);
   });
 });
