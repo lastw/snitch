@@ -4,5 +4,8 @@
   "author": "Vladislav Sapozhnikov <me@lastw.net>",
   "version": "0.0.1",
   "main": "./snitch.js",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "express": "~3.5.1"
+  }
 }

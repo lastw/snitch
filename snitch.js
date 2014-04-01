@@ -8,12 +8,11 @@ var Snitch = function (options) {
   }
   else if (options === undefined) {
     options = {
-      url: location.host
+      url: location.href
     };
   }
 
   this.KEY = options.key || 'snitch';
-
   this.url = options.url;
   this._log = [];
   this.storage = Snitch.storage;
@@ -46,6 +45,13 @@ Snitch.message = function () {
   // cut last space
   return message.slice(0, -1);
 };
+
+Snitch.send = function (options) {
+  options.method = options.method || 'POST';
+  $.ajax(options);
+};
+
+Snitch.extend = $.extend;
 
 Snitch.prototype.serialize = function () {
   return JSON.stringify(this._log);
@@ -86,4 +92,15 @@ Snitch.prototype.save = function () {
 Snitch.prototype.load = function () {
   var stored = this.storage.get(this.KEY) || {};
   this._log = stored[this.url] || [];
+};
+
+Snitch.prototype.send = function (options) {
+  options = Snitch.extend({
+    url: this.url,
+    data: {
+      userAgent: navigator.userAgent,
+      log: this.serialize()
+    }
+  }, options);
+  Snitch.send(options);
 };
