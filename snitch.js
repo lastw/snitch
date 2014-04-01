@@ -14,6 +14,10 @@ var Snitch = function (options) {
 
   this.KEY = options.key || 'snitch';
   this.url = options.url;
+  this.ttl = options.ttl;
+  if (!this.ttl) {
+    this.checkTTL = function () {};
+  }
   this._log = [];
   this.storage = Snitch.storage;
   this.load();
@@ -53,6 +57,8 @@ Snitch.send = function (options) {
 
 Snitch.extend = $.extend;
 
+Snitch.filter = _.filter;
+
 Snitch.prototype.serialize = function () {
   return JSON.stringify(this._log);
 };
@@ -67,6 +73,8 @@ Snitch.prototype.log = function () {
     this.last.date,
     this.last.message
   ]);
+
+  this.checkTTL();
   this.save();
 };
 
@@ -103,4 +111,13 @@ Snitch.prototype.send = function (options) {
     }
   }, options);
   Snitch.send(options);
+};
+
+Snitch.prototype.checkTTL = function () {
+  var deadline = Date.now() - this.ttl;
+  if (this._log[0][0] < deadline) {
+    this._log = Snitch.filter(this._log, function (val) {
+      return val[0] >= deadline;
+    });
+  }
 };

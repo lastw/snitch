@@ -93,3 +93,19 @@ describe('storage', function () {
     expect(snitch._log.length).to.equal(0);
   });
 });
+
+describe('log limits', function () {
+  it('remove logs with expired TTL', function (done) {
+    var snitch = new Snitch({
+      ttl: 200
+    });
+    snitch.log('Test message 1');
+    snitch.log('Test message 2');
+    expect(snitch._log.length).to.equal(2);
+    setTimeout(function () {
+      snitch.log('Test message 3');
+      expect(snitch._log.length).to.equal(1);
+      done();
+    }, 400);
+  });
+});
