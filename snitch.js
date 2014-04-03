@@ -15,7 +15,8 @@
       options = {
         url: options
       };
-    } else {
+    }
+    else {
       options.url = options.url || location.href;
     }
 
@@ -52,7 +53,6 @@
     },
 
     set: function (key, value) {
-      //console.log(key, 'value length', JSON.stringify(value));
       return localStorage.setItem(key, JSON.stringify(value));
     },
 
@@ -81,7 +81,7 @@
 
   Snitch.extend = $.extend;
 
-  Snitch.filter = (typeof (_) !== 'undefined' && _.filter ? _.filter : lodash_filter);
+  Snitch.filter = (typeof (_) !== 'undefined' && _.filter ? _.filter : lodashFilter);
 
   Snitch.prototype.serialize = function () {
     return JSON.stringify(this._log);
@@ -154,14 +154,12 @@
     this._log = this._log.slice(-this.capacity);
   };
 
-  function lodash_filter(collection, condition) {
-    var result = [];
-    //callback = lodash.createCallback(callback, thisArg, 3);
+  function lodashFilter(collection, condition) {
+    var result = [],
+        index = -1,
+        length = collection ? collection.length : 0;
 
-    var index = -1,
-      length = collection ? collection.length : 0;
-
-    if (typeof length == 'number') {
+    if (typeof length === 'number') {
       while (++index < length) {
         var value = collection[index];
         if (condition(value, index, collection)) {
