@@ -174,3 +174,14 @@ describe('log timer', function () {
     }, 400);
   });
 });
+
+describe('errors handling', function () {
+  var snitch = new Snitch();
+  it('circular structures serialization error catch', function () {
+    snitch.clear();
+    var a = {};
+    a.b = a;
+    snitch.log(a);
+    expect(snitch._log[0][1]).to.have.string('snitch serialization error');
+  });
+});

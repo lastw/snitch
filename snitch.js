@@ -49,11 +49,11 @@
 
   Snitch.storage = {
     get: function (key) {
-      return JSON.parse(localStorage.getItem(key));
+      return Snitch.parse(localStorage.getItem(key));
     },
 
     set: function (key, value) {
-      return localStorage.setItem(key, JSON.stringify(value));
+      return localStorage.setItem(key, Snitch.serialize(value));
     },
 
     clear: function (key) {
@@ -66,7 +66,7 @@
     for (var i in arguments) {
       var part = arguments[i];
       if (typeof part !== 'string') {
-        part = JSON.stringify(arguments[i]);
+        part = Snitch.serialize(arguments[i]);
       }
       message += part + ' ';
     }
@@ -79,12 +79,34 @@
     $.ajax(options);
   };
 
+  Snitch.serialize = function (struct) {
+    var result;
+    try {
+      result = JSON.stringify(struct);
+    }
+    catch(e) {
+      result = 'snitch serialization error: ' + e.message;
+    }
+    return result;
+  };
+
+  Snitch.parse = function (str) {
+    var result;
+    try {
+      result = JSON.parse(str);
+    }
+    catch(e) {
+      result = 'parse error: ' + e.message;
+    }
+    return result;
+  };
+
   Snitch.extend = $.extend;
 
   Snitch.filter = (typeof (_) !== 'undefined' && _.filter ? _.filter : lodashFilter);
 
   Snitch.prototype.serialize = function () {
-    return JSON.stringify(this._log);
+    return Snitch.serialize(this._log);
   };
 
   Snitch.prototype.log = function () {
