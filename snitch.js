@@ -122,15 +122,13 @@
   };
 
   Snitch.prototype.log = function () {
-    this.last = {
+   this.last = {
       message: Snitch.message.apply(this, arguments),
-      date: Date.now()
+      date: Date.now(),
+      location: window ? window.location.href : 'n/a',
     };
 
-    this._log.push([
-      this.last.date,
-      this.last.message
-    ]);
+    this._log.push(this.last);
 
     this.checkTTL();
     this.checkCapacity();
