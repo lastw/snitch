@@ -10,13 +10,21 @@ bower install snitch
 
 ## usage
 
-```
+```javascript
 var snitch = new Snitch({
   url: '/path/to/log/service',
   interval: 1000 * 60 * 5 // send logs every 5 minutes
 });
 
 snitch.log('snitch enabled');
+```
+
+## contribute
+
+```javascript
+npm install
+node server.js
+npm test
 ```
 
 ## license
