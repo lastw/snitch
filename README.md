@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/lastw/snitch.svg)](https://travis-ci.org/lastw/snitch)
+
 # snitch
 
 Periodically sends client-side logs to specified url.
