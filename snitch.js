@@ -1,3 +1,4 @@
+/* global _ */
 (function() {
   'use strict';
 
@@ -84,7 +85,6 @@
     try {
       result = JSON.stringify(struct);
     } catch (e) {
-      var cache = [];
       result = JSON.stringify(JSON.decycle(struct));
     }
     return result;
@@ -103,7 +103,7 @@
   Snitch.extend = $.extend;
 
   Snitch.filter = (typeof(_) !== 'undefined' && _.filter ? _.filter :
-    lodashFilter);
+    Snitch.lodashFilter);
 
   Snitch.prototype.serialize = function() {
     return Snitch.serialize(this._log);
@@ -117,9 +117,9 @@
     };
 
     this._log.push([
-            this.last.date,
-            this.last.message
-          ]);
+      this.last.date,
+      this.last.message
+    ]);
 
     this.checkTTL();
     this.checkCapacity();
@@ -177,7 +177,7 @@
     this._log = this._log.slice(-this.capacity);
   };
 
-  function lodashFilter(collection, condition) {
+  Snitch.lodashFilter = function(collection, condition) {
     var result = [],
       index = -1,
       length = collection ? collection.length : 0;
@@ -191,13 +191,12 @@
       }
     }
     return result;
-  }
+  };
 
   ///
   /// copyright https://github.com/douglascrockford/JSON-js/blob/master/cycle.js
   ///
   JSON.decycle = function decycle(object) {
-    'use strict';
 
     var objects = [], // Keep a reference to each unique object or array
       paths = []; // Keep the path to each unique object or array

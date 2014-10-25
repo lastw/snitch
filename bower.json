@@ -2,7 +2,7 @@
   "name": "snitch",
   "description": "Client-side log-sending tool",
   "author": "Vladislav Sapozhnikov <me@lastw.net>",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "./snitch.js",
   "license": "MIT",
   "ignore": [

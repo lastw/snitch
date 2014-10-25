@@ -4,6 +4,10 @@
 
 Periodically sends client-side logs to specified url.
 
+- Zero-dependency;
+- IE9+;
+- Cordova apps compatible.
+
 ## installation
 
 ```
@@ -25,7 +29,6 @@ snitch.log('snitch enabled');
 
 ```javascript
 npm install
-node server.js
 npm test
 ```
 
