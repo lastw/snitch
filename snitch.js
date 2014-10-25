@@ -1,7 +1,20 @@
-/* global _ */
-(function() {
+/* global _, define */
+(function(root, factory) {
   'use strict';
-
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module.
+    define([], factory);
+  } else if (typeof exports === 'object') {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory();
+  } else {
+    // Browser globals (root is window)
+    root.Snitch = factory();
+  }
+}(this, function() {
+  'use strict';
   // Date.now() polifyll for IE8-
   if (!Date.now) {
     Date.now = function now() {
@@ -138,9 +151,9 @@
     };
 
     this._log.push([
-      this.last.date,
-      this.last.message
-    ]);
+        this.last.date,
+        this.last.message
+      ]);
 
     this.checkTTL();
     this.checkCapacity();
@@ -289,8 +302,5 @@
     }(object, '$'));
   };
 
-  /** Used as a reference to the global object */
-  var root = window || this;
-
-  root.Snitch = Snitch; // TODO: more suitable for diffirent modules systems and builders
-}.call(this));
+  return Snitch;
+}));
