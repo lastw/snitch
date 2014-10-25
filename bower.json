@@ -17,7 +17,6 @@
     "lodash": "~2.4.1"
   },
   "dependencies": {
-    "sinon": "~1.10.3",
     "sinonjs": "~1.10.2"
   }
 }
