@@ -25,6 +25,7 @@
     this.ttl = options.ttl;
     this.interval = options.interval;
     this.capacity = options.capacity;
+    this.ignoreErrors = options.ignoreErrors;
     if (!this.ttl) {
       this.checkTTL = function() {};
     }
@@ -75,10 +76,10 @@
     return message.slice(0, -1);
   };
 
-  Snitch.send = function(options) {
-    options.method = options.method || 'POST';
-    $.ajax(options);
-  };
+  // Snitch.send = function(options) {
+  //   options.method = options.method || 'POST';
+  //   $.ajax(options);
+  // };
 
   Snitch.serialize = function(struct) {
     var result;
@@ -100,7 +101,27 @@
     return result;
   };
 
-  Snitch.extend = $.extend;
+  Snitch.extend = function(out) {
+    out = out || {};
+
+    for (var i = 1; i < arguments.length; i++) {
+      var obj = arguments[i];
+
+      if (!obj)
+        continue;
+
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (typeof obj[key] === 'object')
+            Snitch.extend(out[key], obj[key]);
+          else
+            out[key] = obj[key];
+        }
+      }
+    }
+
+    return out;
+  };
 
   Snitch.filter = (typeof(_) !== 'undefined' && _.filter ? _.filter :
     Snitch.lodashFilter);
@@ -150,17 +171,38 @@
     this._log = stored[this.url] || [];
   };
 
-  Snitch.prototype.send = function(options) {
+  Snitch.prototype.send = function() {
+    var _this = this;
     if (this._log.length) {
-      options = Snitch.extend({
-        url: this.url,
-        data: {
-          userAgent: navigator.userAgent,
-          log: this.serialize()
-        },
-        complete: this.clear.bind(this, true) // log will be cleared even if ajax error
-      }, options);
-      Snitch.send(options);
+      var request = new XMLHttpRequest();
+      request.open('POST', this.url, true);
+      request.setRequestHeader('Content-Type',
+        'application/x-www-form-urlencoded; charset=UTF-8');
+      request.send({
+        userAgent: navigator.userAgent,
+        log: this.serialize()
+      });
+
+      request.onload = function() {
+
+        if (request.status >= 200 && request.status < 400) {
+          _this.clear.bind(_this, true);
+        } else {
+          if (_this.ignoreErrors) {
+            _this.clear(true);
+          }
+        }
+      };
+
+      request.onerror = function(e) {
+        if (_this.fallback) {
+          _this.fallback(e);
+        }
+        if (_this.ignoreErrors) {
+          _this.clear(true);
+        }
+      };
+
     }
   };
 
