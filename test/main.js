@@ -186,7 +186,9 @@ describe('log timer', function() {
 });
 
 describe('errors handling', function() {
-  var snitch = new Snitch();
+  var snitch = new Snitch({
+    ignoreErrors: true // do not worry about xhr
+  });
   it('should be able to process circular structures', function() {
     snitch.clear();
     var a = {};
@@ -195,4 +197,28 @@ describe('errors handling', function() {
     snitch.log(a);
     expect(snitch._log[0][1]).to.have.string('test data');
   });
+
+  it('should slice structures more than 100 kB ', function() {
+    snitch.clear();
+    var a = [];
+    for (var i = 0; i < 1000000; i++) {
+      a.push(i + 'test_data_data_test');
+    }
+    snitch.log(a.join(''));
+    expect(snitch._log[0][1][0]).to.have.string('0');
+  });
+
+  it('should be able to process 100 logs by 100 kB each', function() {
+    snitch.clear();
+    for (var i = 0; i < 100; i++) {
+      var a = [];
+      for (var j = 0; j < 10000; j++) {
+        a.push(i + 'test_data_data_test');
+      }
+      snitch.log(a.join(''));
+    }
+
+    expect(snitch._log[0][1][0]).to.have.string('0');
+  });
+
 });

@@ -38,7 +38,9 @@
     this.ttl = options.ttl;
     this.interval = options.interval;
     this.capacity = options.capacity;
+    this.solidMode = options.solidMode || false;
     this.ignoreErrors = options.ignoreErrors;
+    this.sending = false;
     if (!this.ttl) {
       this.checkTTL = function() {};
     }
@@ -67,7 +69,12 @@
     },
 
     set: function(key, value) {
-      return localStorage.setItem(key, Snitch.serialize(value));
+      try {
+        localStorage.setItem(key, Snitch.serialize(value));
+        return true;
+      } catch (e) {
+        return false;
+      }
     },
 
     clear: function(key) {
@@ -88,11 +95,6 @@
     // cut last space
     return message.slice(0, -1);
   };
-
-  // Snitch.send = function(options) {
-  //   options.method = options.method || 'POST';
-  //   $.ajax(options);
-  // };
 
   Snitch.serialize = function(struct) {
     var result;
@@ -119,16 +121,16 @@
 
     for (var i = 1; i < arguments.length; i++) {
       var obj = arguments[i];
-
-      if (!obj)
+      if (!obj) {
         continue;
-
+      }
       for (var key in obj) {
         if (obj.hasOwnProperty(key)) {
-          if (typeof obj[key] === 'object')
+          if (typeof obj[key] === 'object') {
             Snitch.extend(out[key], obj[key]);
-          else
+          } else {
             out[key] = obj[key];
+          }
         }
       }
     }
@@ -150,6 +152,9 @@
       date: Date.now()
     };
 
+    if (this.last.message.length > 1024 * 100) {
+      this.last.message = this.last.message.slice(0, 1024 * 100);
+    }
     this._log.push([
         this.last.date,
         this.last.message
@@ -173,10 +178,17 @@
   };
 
   Snitch.prototype.save = function() {
+    var _this = this;
     var log = this.storage.get(this.KEY);
     log = log || {};
     log[this.url] = this._log;
-    this.storage.set(this.KEY, log);
+    if (!this.storage.set(this.KEY, log) && this.solidMode) {
+      console.log('storage set false');
+      // trying to send it to server and save it again
+      this.send(function() {
+        _this.storage.set(_this.KEY, log);
+      });
+    }
   };
 
   Snitch.prototype.load = function() {
@@ -184,9 +196,10 @@
     this._log = stored[this.url] || [];
   };
 
-  Snitch.prototype.send = function() {
+  Snitch.prototype.send = function(cb) {
     var _this = this;
-    if (this._log.length) {
+    if (this._log.length && !this.sending) {
+      this.sending = true;
       var request = new XMLHttpRequest();
       request.open('POST', this.url, true);
       request.setRequestHeader('Content-Type',
@@ -195,41 +208,47 @@
         userAgent: navigator.userAgent,
         log: this.serialize()
       });
-
       request.onload = function() {
-
         if (request.status >= 200 && request.status < 400) {
-          _this.clear.bind(_this, true);
+          _this.clear(true);
+          if (cb) {
+            cb();
+          }
         } else {
           if (_this.ignoreErrors) {
             _this.clear(true);
           }
         }
+        _this.sending = false;
       };
-
-      request.onerror = function(e) {
-        if (_this.fallback) {
-          _this.fallback(e);
-        }
+      request.onerror = function() {
         if (_this.ignoreErrors) {
           _this.clear(true);
         }
+        _this.sending = false;
       };
-
     }
   };
 
   Snitch.prototype.checkTTL = function() {
     var deadline = Date.now() - this.ttl;
     if (this._log[0][0] < deadline) {
-      this._log = Snitch.filter(this._log, function(val) {
-        return val[0] >= deadline;
-      });
+      if (this.solidMode) {
+        this.send();
+      } else {
+        this._log = Snitch.filter(this._log, function(val) {
+          return val[0] >= deadline;
+        });
+      }
     }
   };
 
   Snitch.prototype.checkCapacity = function() {
-    this._log = this._log.slice(-this.capacity);
+    if (this.solidMode && this._log.length > this.capacity) {
+      this.send();
+    } else {
+      this._log = this._log.slice(-this.capacity);
+    }
   };
 
   Snitch.lodashFilter = function(collection, condition) {
