@@ -2,15 +2,15 @@
 'use strict';
 var expect = chai.expect;
 
-describe('common', function () {
+describe('common', function() {
   var snitch = new Snitch();
 
-  it('snitch.clear() should clear log array', function () {
+  it('snitch.clear() should clear log array', function() {
     snitch.clear();
     expect(snitch.serialize()).to.equal('[]');
   });
 
-  it('snitch.log() increases log array length by one', function () {
+  it('snitch.log() increases log array length by one', function() {
     snitch.clear();
     snitch.log('First test log message');
     expect(snitch._log.length).to.equal(1);
@@ -18,37 +18,37 @@ describe('common', function () {
     expect(snitch._log.length).to.equal(2);
   });
 
-  it('pass url to constuctor as string variable', function () {
+  it('pass url to constuctor as string variable', function() {
     var url = '/path/to/log/service',
-        snitch = new Snitch(url);
+      snitch = new Snitch(url);
     expect(snitch.url).to.equal(url);
   });
 
-  it('pass url to constuctor as options.url', function () {
+  it('pass url to constuctor as options.url', function() {
     var url = '/path/to/log/service',
-        snitch = new Snitch({
-          url: url
-        });
+      snitch = new Snitch({
+        url: url
+      });
     expect(snitch.url).to.equal(url);
   });
 });
 
-describe('logging', function () {
+describe('logging', function() {
   var snitch = new Snitch();
 
-  it('multiple strings logging', function () {
+  it('multiple strings logging', function() {
     snitch.clear();
     snitch.log('string1', 'string2', 'string3');
     expect(snitch.last.message).to.equal('string1 string2 string3');
   });
 
-  it('strings and numbers logging', function () {
+  it('strings and numbers logging', function() {
     snitch.clear();
     snitch.log(1, 'string', 2);
     expect(snitch.last.message).to.equal('1 string 2');
   });
 
-  it('objects logging', function () {
+  it('objects logging', function() {
     snitch.clear();
     snitch.log({
       x: 1
@@ -56,7 +56,7 @@ describe('logging', function () {
     expect(snitch.last.message).to.equal('{"x":1}');
   });
 
-  it('objects and numbers logging', function () {
+  it('objects and numbers logging', function() {
     snitch.clear();
     snitch.log({
       x: 1
@@ -65,10 +65,10 @@ describe('logging', function () {
   });
 });
 
-describe('storage', function () {
+describe('storage', function() {
   var snitch = new Snitch();
 
-  it('log is the same after save/load', function () {
+  it('log is the same after save/load', function() {
     snitch.clear();
     snitch.log('First test log message');
     snitch.log('Second test log message');
@@ -77,7 +77,7 @@ describe('storage', function () {
     expect(snitch2.serialize()).to.equal(snitch.serialize());
   });
 
-  it('log is the same after save/load (with options)', function () {
+  it('log is the same after save/load (with options)', function() {
     snitch.clear();
     snitch.log('First test log message');
     snitch.log('Second test log message');
@@ -88,7 +88,7 @@ describe('storage', function () {
     expect(snitch2.serialize()).to.equal(snitch.serialize());
   });
 
-  it('storages with different urls not affect each other', function () {
+  it('storages with different urls not affect each other', function() {
     snitch.clear();
     var snitch2 = new Snitch('/path/to/log/service');
     snitch2.clear();
@@ -99,7 +99,7 @@ describe('storage', function () {
     expect(snitch2._log.length).to.equal(0);
   });
 
-  it('hard clearing clears storage', function () {
+  it('hard clearing clears storage', function() {
     snitch.clear();
     snitch.log('Test message');
     snitch.clear();
@@ -111,8 +111,8 @@ describe('storage', function () {
   });
 });
 
-describe('log limits', function () {
-  it('remove logs with expired TTL', function (done) {
+describe('log limits', function() {
+  it('remove logs with expired TTL', function(done) {
     var snitch = new Snitch({
       ttl: 200
     });
@@ -120,14 +120,14 @@ describe('log limits', function () {
     snitch.log('Test message 1');
     snitch.log('Test message 2');
     expect(snitch._log.length).to.equal(2);
-    setTimeout(function () {
+    setTimeout(function() {
       snitch.log('Test message 3');
       expect(snitch._log.length).to.equal(1);
       done();
     }, 400);
   });
 
-  it('remove logs over capacity', function () {
+  it('remove logs over capacity', function() {
     var snitch = new Snitch({
       capacity: 3
     });
@@ -141,40 +141,42 @@ describe('log limits', function () {
   });
 });
 
-describe('log timer', function () {
-  it('log sending every interval', function (done) {
+describe('log timer', function() {
+  it('log sending every interval', function(done) {
     var snitch = new Snitch({
-      interval: 300
+      interval: 300,
+      ignoreErrors: true
     });
     snitch.clear();
     snitch.log('Test interval');
     expect(snitch._log.length).to.equal(1);
     expect(snitch._log[0][1]).to.equal('Test interval');
-    setTimeout(function () {
+    setTimeout(function() {
       expect(snitch._log.length).to.equal(0);
       snitch.log('Test interval 2');
       expect(snitch._log.length).to.equal(1);
       expect(snitch._log[0][1]).to.equal('Test interval 2');
-      setTimeout(function () {
+      setTimeout(function() {
         expect(snitch._log.length).to.equal(0);
         done();
       }, 400);
     }, 400);
   });
 
-  it('log sending timer offset', function (done) {
+  it('log sending timer offset', function(done) {
     var snitch = new Snitch();
     snitch.clear();
     snitch.log('Test interval offset');
-    setTimeout(function () { // TODO: use async
+    setTimeout(function() { // TODO: use async
       var snitch2 = new Snitch({
-        interval: 800
+        interval: 800,
+        ignoreErrors: true
       });
       expect(snitch2._log.length).to.equal(1);
       expect(snitch2._log[0][1]).to.equal('Test interval offset');
-      setTimeout(function () {
+      setTimeout(function() {
         expect(snitch2._log.length).to.equal(1);
-        setTimeout(function () {
+        setTimeout(function() {
           expect(snitch2._log.length).to.equal(0);
           done();
         }, 300);
@@ -183,9 +185,11 @@ describe('log timer', function () {
   });
 });
 
-describe('errors handling', function () {
-  var snitch = new Snitch();
-  it('should be able to process circular structures', function () {
+describe('errors handling', function() {
+  var snitch = new Snitch({
+    ignoreErrors: true // do not worry about xhr
+  });
+  it('should be able to process circular structures', function() {
     snitch.clear();
     var a = {};
     a.c = 'test data';
@@ -193,4 +197,28 @@ describe('errors handling', function () {
     snitch.log(a);
     expect(snitch._log[0][1]).to.have.string('test data');
   });
+
+  it('should slice structures more than 100 kB ', function() {
+    snitch.clear();
+    var a = [];
+    for (var i = 0; i < 1000000; i++) {
+      a.push(i + 'test_data_data_test');
+    }
+    snitch.log(a.join(''));
+    expect(snitch._log[0][1][0]).to.have.string('0');
+  });
+
+  it('should be able to process 100 logs by 100 kB each', function() {
+    snitch.clear();
+    for (var i = 0; i < 100; i++) {
+      var a = [];
+      for (var j = 0; j < 10000; j++) {
+        a.push(i + 'test_data_data_test');
+      }
+      snitch.log(a.join(''));
+    }
+
+    expect(snitch._log[0][1][0]).to.have.string('0');
+  });
+
 });
