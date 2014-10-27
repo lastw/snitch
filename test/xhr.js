@@ -51,7 +51,6 @@ describe('xhr', function() {
       expect(requests[0].method).to.equal('POST');
       var request = JSON.parse(requests[0].requestBody);
       expect(request.userAgent).to.equal(navigator.userAgent);
-    
       expect(JSON.parse(request.log)[0][1]).to.equal('0 element of array');
       requests[0].respond(200, { 'Content-Type': 'application/json' },'[]');
       setTimeout(function() {
