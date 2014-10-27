@@ -183,7 +183,6 @@
     log = log || {};
     log[this.url] = this._log;
     if (!this.storage.set(this.KEY, log) && this.solidMode) {
-      console.log('storage set false');
       // trying to send it to server and save it again
       this.send(function() {
         _this.storage.set(_this.KEY, log);
@@ -203,11 +202,11 @@
       var request = new XMLHttpRequest();
       request.open('POST', this.url, true);
       request.setRequestHeader('Content-Type',
-        'application/x-www-form-urlencoded; charset=UTF-8');
-      request.send({
+        'application/json; charset=UTF-8');
+      request.send(JSON.stringify({
         userAgent: navigator.userAgent,
         log: this.serialize()
-      });
+      }));
       request.onload = function() {
         if (request.status >= 200 && request.status < 400) {
           _this.clear(true);

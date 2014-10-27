@@ -26,9 +26,10 @@ describe('xhr', function() {
       snitch.send();
       expect(requests.length).to.equal(1);
       expect(requests[0].url).to.equal('/system/capture');
+      var request = JSON.parse(requests[0].requestBody);
       expect(requests[0].method).to.equal('POST');
-      expect(requests[0].requestBody.userAgent).to.equal(navigator.userAgent);
-      expect(JSON.parse(requests[0].requestBody.log)[0][1]).to.equal('test');
+      expect(request.userAgent).to.equal(navigator.userAgent);
+      expect(JSON.parse(request.log)[0][1]).to.equal('test');
     });
 
   it('makes a POST when storage capacity overflows',
@@ -46,15 +47,18 @@ describe('xhr', function() {
       }
       expect(requests.length).to.not.equal(0);
       expect(requests[0].url).to.equal('/system/capture');
+
       expect(requests[0].method).to.equal('POST');
-      expect(requests[0].requestBody.userAgent).to.equal(navigator.userAgent);
-      expect(JSON.parse(requests[0].requestBody.log)[0][1]).to.equal('0 element of array');
+      var request = JSON.parse(requests[0].requestBody);
+      expect(request.userAgent).to.equal(navigator.userAgent);
+    
+      expect(JSON.parse(request.log)[0][1]).to.equal('0 element of array');
       requests[0].respond(200, { 'Content-Type': 'application/json' },'[]');
       setTimeout(function() {
         for (var i = 100; i< 200; i++) {
           snitch.log(i, 'element of array');
         }
-        expect(JSON.parse(requests[1].requestBody.log)[0][1]).to.equal('100 element of array');
+        expect(JSON.parse(JSON.parse(requests[1].requestBody).log)[0][1]).to.equal('100 element of array');
         done();
       }, 10);
 
